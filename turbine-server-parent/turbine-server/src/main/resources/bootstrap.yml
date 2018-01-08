@@ -1,0 +1,65 @@
+info:
+  app:
+    name: turbine-server
+    description: Turbine Service
+    version: @project.version@
+
+server:
+  port: 1111
+  use-forward-headers: true
+
+turbine:
+  stream:
+    port: 8989
+
+spring:
+  application:
+    name: turbine-server
+  profiles:
+    active: local
+  thymeleaf:
+    enabled: false
+
+---
+
+spring:
+  profiles: local
+  cloud:
+    config:
+      uri: http://localhost:1111/config-api/
+logging:
+  config: classpath:logback.xml
+
+---
+
+spring:
+  profiles: test
+  cloud:
+    config:
+      uri: http://config-api:1111/config-api/
+logging:
+  config: classpath:logback.xml
+
+---
+
+spring:
+  profiles: qa
+  cloud:
+    config:
+      uri: http://config-api-gateway:1111/config-api/
+logging:
+  config: classpath:logback-qa.xml
+
+---
+
+spring:
+  profiles: prod
+  cloud:
+    config:
+      uri: http://config-api-gateway:1111/config-api/
+logging:
+  config: classpath:logback-prod.xml
+
+---
+
+

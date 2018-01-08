@@ -1,0 +1,64 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata: 
+    name: turbine-server
+spec:
+    replicas: 1
+    strategy:
+      type: RollingUpdate
+      rollingUpdate:
+        maxSurge: 1
+        maxUnavailable: 1
+    minReadySeconds: 5
+    template:
+        metadata:
+            labels:
+              app: turbine-server
+              tier: metrics
+        spec:
+            containers:
+            - name: turbine-server
+              image: emtdevelopment/turbine-server:@docker.release.version@
+              readinessProbe:
+                httpGet:
+                  path: /health
+                  port: 1113
+                initialDelaySeconds: 120
+                timeoutSeconds: 60
+                periodSeconds: 15
+              livenessProbe:
+                httpGet:
+                  path: /health
+                  port: 1113
+                initialDelaySeconds: 120
+                timeoutSeconds: 60
+                periodSeconds: 15
+              env:
+              - name: CONFIG_URL
+                value: http://config-api-gateway:1111/config-api/
+              ports:
+              - containerPort: 1113
+              - containerPort: 8989
+
+---
+
+kind: Service
+metadata:
+    name: turbine-server-gateway
+    labels:
+        app: turbine-server
+        tier: metrics
+spec:
+    type: LoadBalancer
+    ports:
+    - name: web
+      protocol: TCP
+      port: 1113
+      targetPort: 1113
+    - name: turbine-stream
+      protocol: TCP
+      port: 8989
+      targetPort: 8989
+    selector:
+        app: turbine-server
+        tier: metrics
